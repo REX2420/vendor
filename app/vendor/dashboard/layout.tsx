@@ -128,7 +128,7 @@ export default function DashboardLayout({
                   <div className="">Create product</div>
                 </Link>
               </div>
-              <div className="">Categories:</div>
+              {/* <div className="">Categories:</div>
               <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
                 <Link href={"/vendor/dashboard/categories"}>
                   <MdOutlineCategory size={20} />
@@ -136,8 +136,8 @@ export default function DashboardLayout({
                 <Link href={"/vendor/dashboard/categories"}>
                   <div className="">Categories</div>
                 </Link>
-              </div>
-              <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
+              </div> */}
+              {/* <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
                 <Link href={"/vendor/dashboard/subCategories"}>
                   <MdOutlineCategory
                     size={20}
@@ -147,7 +147,7 @@ export default function DashboardLayout({
                 <Link href={"/vendor/dashboard/subCategories"}>
                   <div className="">Sub Categories</div>
                 </Link>
-              </div>
+              </div> */}
               <div className="">Analytics:</div>
               <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
                 <Link href={"/vendor/dashboard/analytics/order"}>
