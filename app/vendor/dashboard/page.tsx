@@ -43,7 +43,7 @@ const VendorDashboardPage = async () => {
               <HiCurrencyRupee size={30} className="text-green-600" />
             </div>
             <span className="text-gray-600 text-sm">Total Sales</span>
-            <span className="text-xl font-semibold text-gray-800">₹{allOrdersData?.totalSales}</span>
+            <span className="text-xl font-semibold text-gray-800">MVR{allOrdersData?.totalSales}</span>
           </div>
         </div>
 
@@ -53,7 +53,7 @@ const VendorDashboardPage = async () => {
               <HiCurrencyRupee size={30} className="text-blue-600" />
             </div>
             <span className="text-gray-600 text-sm">Last Month Sales</span>
-            <span className="text-xl font-semibold text-gray-800">₹{allOrdersData?.lastMonthSales}</span>
+            <span className="text-xl font-semibold text-gray-800">MVR{allOrdersData?.lastMonthSales}</span>
           </div>
         </div>
 
@@ -107,7 +107,7 @@ const VendorDashboardPage = async () => {
                     </TableCell>
                     <TableCell className="py-4">
                       <div className="flex items-center">
-                        <span className="text-gray-800 font-semibold">₹{order.total}</span>
+                        <span className="text-gray-800 font-semibold">MVR{order.total}</span>
                       </div>
                     </TableCell>
                     <TableCell className="py-4">

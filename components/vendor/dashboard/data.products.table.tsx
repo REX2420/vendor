@@ -137,7 +137,7 @@ const ProductsDataTable = ({ products }: { products: any }) => {
       const sizes = subProduct.sizes || [];
 
       const sizePrices = sizes
-        .map((size: any) => `${size.size}: ₹${size.price}`)
+        .map((size: any) => `${size.size}: MVR${size.price}`)
         .join(", ");
       const sizeLabels = sizes.map((size: any) => size.size).join(", ");
 

@@ -50,10 +50,10 @@ const DashboardCard = ({ data }: { data: any }) => {
             <div>
               <p className="text-white/80 text-sm font-medium">Total Earnings</p>
               <h3 className="text-3xl font-bold text-white mt-2">
-                ₹{totalEarnings.toLocaleString()}
+                MVR{totalEarnings.toLocaleString()}
               </h3>
               <p className="text-white/80 text-sm mt-2">
-                ₹{unpaidAmount.toLocaleString()} unpaid
+                MVR{unpaidAmount.toLocaleString()} unpaid
               </p>
             </div>
             <div className="bg-white/20 p-4 rounded-full">
