@@ -22,7 +22,6 @@ import JoditEditor from "jodit-react";
 import {
   createProduct,
   getParentsandCategories,
-  getSingleProductById,
 } from "@/lib/database/actions/vendor/products/products.actions";
 import { getSubCategoriesByCategoryParent } from "@/lib/database/actions/vendor/subCategories/subcategories.actions";
 import { getVendorCookiesandFetchVendor } from "@/lib/database/actions/vendor/vendor.actions";
@@ -41,7 +40,6 @@ interface FormValues {
     color: string;
     image: File | null;
   };
-  parent: string;
   category: string;
   subCategories: string[];
   sizes: { size: string; qty: string; price: string }[];
@@ -53,7 +51,6 @@ interface FormValues {
 }
 const CreateProductPage = () => {
   const [images, setImages] = useState<string[]>([]);
-  const [parents, setParents] = useState<{ _id: string; name: string }[]>([]);
   const [categories, setCategories] = useState<{ _id: string; name: string }[]>(
     []
   );
@@ -96,7 +93,6 @@ const CreateProductPage = () => {
         color: "",
         image: null,
       },
-      parent: "",
       category: "",
       subCategories: [],
       sizes: [{ size: "", qty: "", price: "" }],
@@ -208,7 +204,6 @@ const CreateProductPage = () => {
 
       // Prepare the product details for submission
       const productDetails = {
-        parent: values.parent,
         sku: values.sku,
         color: {
           image: style_img,
@@ -248,7 +243,6 @@ const CreateProductPage = () => {
           productDetails.subCategories,
           productDetails.benefits,
           productDetails.ingredients,
-          productDetails.parent
         ).then((res) => {
           if (res.success) {
             setLoading(false);
@@ -274,7 +268,6 @@ const CreateProductPage = () => {
         await getParentsandCategories()
           .then((res) => {
             if (res?.success) {
-              setParents(res?.parents || []);
               setCategories(res?.categories || []);
             }
           })
@@ -317,31 +310,6 @@ const CreateProductPage = () => {
   const addDetail = () =>
     form.insertListItem("details", { name: "", value: "" });
 
-  useEffect(() => {
-    const fetchParentData = async () => {
-      if (form.values.parent) {
-        try {
-          const data = await getSingleProductById(form.values.parent, 0, 0);
-          form.setValues({
-            ...form.values,
-            name: data.name,
-            description: data.description,
-            brand: data.brand,
-            category: data.category,
-            subCategories: data.subCategories,
-            questions: data.questions,
-            details: data.details,
-            benefits: data.benefits,
-            ingredients: data.ingredients,
-          });
-        } catch (error) {
-          console.error("Error fetching parent data:", error);
-        }
-      }
-    };
-
-    fetchParentData();
-  }, [form.values.parent]);
   return (
     <div>
       <div className="titleStyle">Create a Product</div>
@@ -410,18 +378,6 @@ const CreateProductPage = () => {
             required
             error={form.errors.color}
           />
-
-          {parents.length > 0 && (
-            <Select
-              {...form.getInputProps("parent")}
-              label="Parent"
-              placeholder="Select a parent"
-              data={parents.map((parent) => ({
-                value: parent._id,
-                label: parent.name,
-              }))}
-            />
-          )}
 
           {categories.length > 0 && (
             <Select

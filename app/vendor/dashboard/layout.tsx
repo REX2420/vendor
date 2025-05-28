@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import "../../globals.css";
 import "@mantine/core/styles.css";
-import { AppShell, Burger, Group, MantineProvider, Text } from "@mantine/core";
+import { AppShell, Burger, Group, Text } from "@mantine/core";
 
 import { useDisclosure } from "@mantine/hooks";
 import { MdOutlineCategory, MdSpaceDashboard } from "react-icons/md";
@@ -14,6 +14,7 @@ import { BsPatchPlus } from "react-icons/bs";
 import { RiCoupon3Fill } from "react-icons/ri";
 import { VscGraph } from "react-icons/vsc";
 import { IoIosLogOut } from "react-icons/io";
+import { HiOutlineDocumentText } from "react-icons/hi2";
 import Link from "next/link";
 import { logout } from "@/lib/database/actions/vendor/auth/logout";
 import { getVendorCookiesandFetchVendor } from "@/lib/database/actions/vendor/vendor.actions";
@@ -56,132 +57,147 @@ export default function DashboardLayout({
     return <div>Loading...</div>;
   }
   return (
-    <MantineProvider>
-      <ModalsProvider>
-        <AppShell
-          header={{ height: 60 }}
-          navbar={{
-            width: 300,
-            breakpoint: "sm",
-            collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
-          }}
-          padding={"md"}
-        >
-          <AppShell.Header>
-            <Group h={"100%"} px={"md"}>
-              <Burger
-                opened={mobileOpened}
-                onClick={toggleMobile}
-                hiddenFrom="sm"
-                size={"sm"}
-              />
-              <Burger
-                opened={desktopOpened}
-                onClick={toggleDesktop}
-                visibleFrom="sm"
-                size={"sm"}
-              />
-              <Logo />
-            </Group>
-          </AppShell.Header>
-          <AppShell.Navbar p={"md"}>
-            <div>
-              <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
-                <Link href={"/vendor/dashboard"}>
-                  <MdSpaceDashboard size={20} />
-                </Link>
-                <Link href={"/vendor/dashboard"}>
-                  <div className="">Vendor Dashboard</div>
-                </Link>
-              </div>
-              <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
-                <Link href={"/vendor/dashboard/coupons"}>
-                  <RiCoupon3Fill size={20} />
-                </Link>
-                <Link href={"/vendor/dashboard/coupons"}>
-                  <div className="">Coupons</div>
-                </Link>
-              </div>
-              <div className="">Orders:</div>
-              <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
-                <Link href={"/vendor/dashboard/orders"}>
-                  <IoListCircleSharp size={20} />
-                </Link>
-                <Link href={"/vendor/dashboard/orders"}>
-                  <div className="">Orders</div>
-                </Link>
-              </div>
-              <div className="">Products:</div>
-              <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
-                <Link href={"/vendor/dashboard/product/all/tabular"}>
-                  <FaTable size={20} />
-                </Link>
-                <Link href={"/vendor/dashboard/product/all/tabular"}>
-                  <div className="">All Products</div>
-                </Link>
-              </div>
-              <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
-                <Link href={"/vendor/dashboard/product/create"}>
-                  <BsPatchPlus size={20} />
-                </Link>
-                <Link href={"/vendor/dashboard/product/create"}>
-                  <div className="">Create product</div>
-                </Link>
-              </div>
-              {/* <div className="">Categories:</div>
-              <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
-                <Link href={"/vendor/dashboard/categories"}>
-                  <MdOutlineCategory size={20} />
-                </Link>
-                <Link href={"/vendor/dashboard/categories"}>
-                  <div className="">Categories</div>
-                </Link>
-              </div> */}
-              {/* <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
-                <Link href={"/vendor/dashboard/subCategories"}>
-                  <MdOutlineCategory
-                    size={20}
-                    style={{ transform: "rotate(180deg)" }}
-                  />
-                </Link>
-                <Link href={"/vendor/dashboard/subCategories"}>
-                  <div className="">Sub Categories</div>
-                </Link>
-              </div> */}
-              <div className="">Analytics:</div>
-              <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
-                <Link href={"/vendor/dashboard/analytics/order"}>
-                  <VscGraph size={20} />
-                </Link>
-                <Link href={"/vendor/dashboard/analytics/order"}>
-                  <div className="">Order Analytics</div>
-                </Link>
-              </div>
-              <div
-                onClick={() => {
-                  modals.openConfirmModal({
-                    title: "Logout",
-                    centered: true,
-                    children: <Text size="sm">Do you want to log out?</Text>,
-                    labels: {
-                      confirm: "Yes, Logout",
-                      cancel: "Cancel",
-                    },
-                    confirmProps: { color: "red" },
-                    onCancel: () => console.log("Cancel"),
-                    onConfirm: () => logout(),
-                  });
-                }}
-                className="cursor-pointer flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100 "
-              >
-                <IoIosLogOut size={20} />
-                <div className="">Logout</div>
-              </div>
+    <ModalsProvider>
+      <AppShell
+        header={{ height: 60 }}
+        navbar={{
+          width: 300,
+          breakpoint: "sm",
+          collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
+        }}
+        padding={"md"}
+      >
+        <AppShell.Header>
+          <Group h={"100%"} px={"md"}>
+            <Burger
+              opened={mobileOpened}
+              onClick={toggleMobile}
+              hiddenFrom="sm"
+              size={"sm"}
+            />
+            <Burger
+              opened={desktopOpened}
+              onClick={toggleDesktop}
+              visibleFrom="sm"
+              size={"sm"}
+            />
+            <Logo />
+          </Group>
+        </AppShell.Header>
+        <AppShell.Navbar p={"md"}>
+          <div>
+            <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
+              <Link href={"/vendor/dashboard"}>
+                <MdSpaceDashboard size={20} />
+              </Link>
+              <Link href={"/vendor/dashboard"}>
+                <div className="">Vendor Dashboard</div>
+              </Link>
             </div>
-          </AppShell.Navbar>
-          <AppShell.Main>{children}</AppShell.Main>
-        </AppShell>
-      </ModalsProvider>
-    </MantineProvider>
+            <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
+              <Link href={"/vendor/dashboard/coupons"}>
+                <RiCoupon3Fill size={20} />
+              </Link>
+              <Link href={"/vendor/dashboard/coupons"}>
+                <div className="">Coupons</div>
+              </Link>
+            </div>
+            <div className="">Orders:</div>
+            <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
+              <Link href={"/vendor/dashboard/orders"}>
+                <IoListCircleSharp size={20} />
+              </Link>
+              <Link href={"/vendor/dashboard/orders"}>
+                <div className="">Orders</div>
+              </Link>
+            </div>
+            <div className="">Products:</div>
+            <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
+              <Link href={"/vendor/dashboard/product/all/tabular"}>
+                <FaTable size={20} />
+              </Link>
+              <Link href={"/vendor/dashboard/product/all/tabular"}>
+                <div className="">All Products</div>
+              </Link>
+            </div>
+            <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
+              <Link href={"/vendor/dashboard/product/create"}>
+                <BsPatchPlus size={20} />
+              </Link>
+              <Link href={"/vendor/dashboard/product/create"}>
+                <div className="">Create product</div>
+              </Link>
+            </div>
+            <div className="">Blog Management:</div>
+            <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
+              <Link href={"/vendor/dashboard/blogs"}>
+                <HiOutlineDocumentText size={20} />
+              </Link>
+              <Link href={"/vendor/dashboard/blogs"}>
+                <div className="">Manage Blogs</div>
+              </Link>
+            </div>
+            <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
+              <Link href={"/vendor/dashboard/blogs/create"}>
+                <BsPatchPlus size={20} />
+              </Link>
+              <Link href={"/vendor/dashboard/blogs/create"}>
+                <div className="">Create Blog</div>
+              </Link>
+            </div>
+            {/* <div className="">Categories:</div>
+            <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
+              <Link href={"/vendor/dashboard/categories"}>
+                <MdOutlineCategory size={20} />
+              </Link>
+              <Link href={"/vendor/dashboard/categories"}>
+                <div className="">Categories</div>
+              </Link>
+            </div> */}
+            {/* <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
+              <Link href={"/vendor/dashboard/subCategories"}>
+                <MdOutlineCategory
+                  size={20}
+                  style={{ transform: "rotate(180deg)" }}
+                />
+              </Link>
+              <Link href={"/vendor/dashboard/subCategories"}>
+                <div className="">Sub Categories</div>
+              </Link>
+            </div> */}
+            <div className="">Analytics:</div>
+            <div className="flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100">
+              <Link href={"/vendor/dashboard/analytics/order"}>
+                <VscGraph size={20} />
+              </Link>
+              <Link href={"/vendor/dashboard/analytics/order"}>
+                <div className="">Order Analytics</div>
+              </Link>
+            </div>
+            <div
+              onClick={() => {
+                modals.openConfirmModal({
+                  title: "Logout",
+                  centered: true,
+                  children: <Text size="sm">Do you want to log out?</Text>,
+                  labels: {
+                    confirm: "Yes, Logout",
+                    cancel: "Cancel",
+                  },
+                  confirmProps: { color: "red" },
+                  onCancel: () => console.log("Cancel"),
+                  onConfirm: () => logout(),
+                });
+              }}
+              className="cursor-pointer flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100 "
+            >
+              <IoIosLogOut size={20} />
+              <div className="">Logout</div>
+            </div>
+          </div>
+        </AppShell.Navbar>
+        <AppShell.Main>{children}</AppShell.Main>
+      </AppShell>
+    </ModalsProvider>
   );
 }
