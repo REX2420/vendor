@@ -209,7 +209,7 @@ export const getSingleProductById = async (
     const product: any = await Product.findById(id).lean();
     const discount = product.subProducts[style].discount;
     const priceBefore = product.subProducts[style].sizes[size].price;
-    const price = discount ? priceBefore - priceBefore / discount : priceBefore;
+    const price = discount > 0 ? priceBefore - (priceBefore * discount) / 100 : priceBefore;
     return JSON.parse(
       JSON.stringify({
         success: true,
