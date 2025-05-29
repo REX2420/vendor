@@ -10,25 +10,50 @@ import Logo from "./Logo";
 
 const Navbar = () => {
   const [vendor, setVendor] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  
   useEffect(() => {
-    try {
-      const fetchVendorDetails = async () => {
-        try {
-          await getVendorCookiesandFetchVendor().then((res) => {
-            if (res?.success) {
-              setVendor(res?.vendor);
-            }
-          });
-        } catch (error: any) {
-          console.log(error);
+    const fetchVendorDetails = async () => {
+      try {
+        const res = await getVendorCookiesandFetchVendor();
+        if (res?.success) {
+          setVendor(res?.vendor);
+        } else {
+          setVendor(null);
         }
-      };
-      fetchVendorDetails();
+      } catch (error: any) {
+        console.log(error);
+        setVendor(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchVendorDetails();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setVendor(null);
+      router.push("/");
+      router.refresh();
     } catch (error: any) {
       console.log(error);
     }
-  }, []);
+  };
+
+  if (loading) {
+    return (
+      <header className="p-[1rem] border-b-[1px] border-b-[#eaeaea]">
+        <nav className="flex justify-between items-center">
+          <Logo />
+          <div>Loading...</div>
+        </nav>
+      </header>
+    );
+  }
+
   return (
     <header className="p-[1rem] border-b-[1px] border-b-[#eaeaea]">
       <nav className="flex justify-between items-center">
@@ -42,12 +67,7 @@ const Navbar = () => {
               >
                 Vendor Dashboard
               </Button>
-              <Button
-                onClick={() => {
-                  logout();
-                  router.refresh();
-                }}
-              >
+              <Button onClick={handleLogout}>
                 Logout
               </Button>
             </div>

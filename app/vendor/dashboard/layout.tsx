@@ -27,35 +27,57 @@ export default function DashboardLayout({
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure();
   const [vendor, setVendor] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
+  
   useEffect(() => {
-    try {
-      const fetchVendorDetails = async () => {
-        try {
-          await getVendorCookiesandFetchVendor().then((res) => {
-            if (res?.success) {
-              setVendor(res?.vendor);
-              setLoading(false);
-            }
-          });
-        } catch (error: any) {
-          console.log(error);
+    const fetchVendorDetails = async () => {
+      try {
+        const res = await getVendorCookiesandFetchVendor();
+        if (res?.success) {
+          setVendor(res?.vendor);
+        } else {
+          // If no valid vendor, redirect to signin
+          router.push("/signin");
         }
-      };
-      fetchVendorDetails();
-    } catch (error: any) {
-      console.log(error);
-    }
-  }, []);
+      } catch (error: any) {
+        console.log(error);
+        router.push("/signin");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchVendorDetails();
+  }, [router]);
+  
   useEffect(() => {
     if (vendor && !vendor.verified) {
       router.push("/");
     }
-  }, [vendor]);
+  }, [vendor, router]);
+  
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/");
+    } catch (error: any) {
+      console.log(error);
+    }
+  };
+  
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div>Loading...</div>
+      </div>
+    );
   }
+
+  // If no vendor after loading, don't render the dashboard
+  if (!vendor) {
+    return null;
+  }
+
   return (
     <ModalsProvider>
       <AppShell
@@ -186,7 +208,7 @@ export default function DashboardLayout({
                   },
                   confirmProps: { color: "red" },
                   onCancel: () => console.log("Cancel"),
-                  onConfirm: () => logout(),
+                  onConfirm: handleLogout,
                 });
               }}
               className="cursor-pointer flex gap-[30px] items-center p-[10px] rounded-md hover:bg-blue-100 "

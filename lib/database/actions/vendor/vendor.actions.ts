@@ -8,31 +8,56 @@ const { ObjectId } = mongoose.Types;
 
 // get vendor cookies for vendor
 export const getVendorCookiesandFetchVendor = async () => {
-  const cookieStore = await cookies();
-  const vendor_token = cookieStore.get("vendor_token");
-  if (!vendor_token) {
+  try {
+    const cookieStore = await cookies();
+    const vendor_token = cookieStore.get("vendor_token");
+    
+    if (!vendor_token) {
+      return {
+        message: "Vendor token is invalid!",
+        vendor: [],
+        success: false,
+      };
+    }
+
+    let decode;
+    try {
+      decode = jwt.verify(vendor_token?.value, process.env.JWT_SECRET);
+    } catch (jwtError) {
+      // If JWT is invalid, delete the cookie and return false
+      cookieStore.delete("vendor_token");
+      return {
+        message: "Invalid token!",
+        vendor: [],
+        success: false,
+      };
+    }
+
+    await connectToDatabase();
+    const vendor = await Vendor.findById(decode.id);
+    
+    if (!vendor) {
+      cookieStore.delete("vendor_token");
+      return {
+        message: "Vendor doesn't exist.",
+        vendor: [],
+        success: false,
+      };
+    }
+
     return {
-      message: "Vendor token is invalid!",
+      message: "Successfully found vendor on database.",
+      vendor: JSON.parse(JSON.stringify(vendor)),
+      success: true,
+    };
+  } catch (error: any) {
+    console.error("Error in getVendorCookiesandFetchVendor:", error);
+    return {
+      message: "An error occurred while fetching vendor data.",
       vendor: [],
       success: false,
     };
   }
-  const decode = jwt.verify(vendor_token?.value, process.env.JWT_SECRET);
-  await connectToDatabase();
-  const vendor = await Vendor.findById(decode.id);
-  if (!vendor) {
-    cookieStore.delete("vendor_token");
-    return {
-      message: "Vendor does'nt exits.",
-      vendor: [],
-      success: false,
-    };
-  }
-  return {
-    message: "Successfully found vendor on database.",
-    vendor: JSON.parse(JSON.stringify(vendor)),
-    success: true,
-  };
 };
 
 // get single vendor
