@@ -1,22 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createBlog } from "@/lib/database/actions/vendor/blog/blog.actions";
+import { createBlog, getCategoriesForBlog, getSubCategoriesForBlog } from "@/lib/database/actions/vendor/blog/blog.actions";
 import Link from "next/link";
 
-const categories = [
-  "Fragrance Tips",
-  "Product Reviews", 
-  "Lifestyle",
-  "Beauty",
-  "Fashion",
-  "Health & Wellness"
-];
+interface Category {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
+interface SubCategory {
+  _id: string;
+  name: string;
+  slug: string;
+  parent: string;
+}
 
 const CreateBlogPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [subCategoriesLoading, setSubCategoriesLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -28,11 +36,63 @@ const CreateBlogPage = () => {
     excerpt: "",
     featuredImage: "",
     category: "",
+    subCategory: "",
     status: "draft" as "draft" | "published",
     featured: false,
     seoTitle: "",
     seoDescription: "",
   });
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const response = await getCategoriesForBlog();
+        if (response.success) {
+          setCategories(response.categories);
+        } else {
+          console.error("Failed to fetch categories:", response.message);
+          alert("Failed to load categories. Please refresh the page.");
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        alert("Failed to load categories. Please refresh the page.");
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Fetch subcategories when category changes
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      if (formData.category) {
+        try {
+          setSubCategoriesLoading(true);
+          const response = await getSubCategoriesForBlog(formData.category);
+          if (response.success) {
+            setSubCategories(response.subCategories);
+          } else {
+            console.error("Failed to fetch subcategories:", response.message);
+            setSubCategories([]);
+          }
+        } catch (error) {
+          console.error("Error fetching subcategories:", error);
+          setSubCategories([]);
+        } finally {
+          setSubCategoriesLoading(false);
+        }
+      } else {
+        setSubCategories([]);
+        setFormData(prev => ({ ...prev, subCategory: "" }));
+      }
+    };
+
+    fetchSubCategories();
+  }, [formData.category]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -138,6 +198,7 @@ const CreateBlogPage = () => {
         excerpt: formData.excerpt,
         featuredImage: featuredImageData,
         category: formData.category,
+        subCategory: formData.subCategory,
         tags: tags,
         status: formData.status,
         featured: formData.featured,
@@ -312,25 +373,54 @@ const CreateBlogPage = () => {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
-                  <select
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) => handleInputChange("category", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    required
-                  >
-                    <option value="">Select category</option>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+                  {categoriesLoading ? (
+                    <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
+                      Loading categories...
+                    </div>
+                  ) : (
+                    <select
+                      id="category"
+                      value={formData.category}
+                      onChange={(e) => handleInputChange("category", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      required
+                    >
+                      <option value="">Select category</option>
+                      {categories.map((category) => (
+                        <option key={category._id} value={category._id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="subCategory" className="block text-sm font-medium text-gray-700 mb-2">Subcategory</label>
+                  {subCategoriesLoading ? (
+                    <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
+                      Loading subcategories...
+                    </div>
+                  ) : (
+                    <select
+                      id="subCategory"
+                      value={formData.subCategory}
+                      onChange={(e) => handleInputChange("subCategory", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    >
+                      <option value="">Select subcategory</option>
+                      {subCategories.map((subCategory) => (
+                        <option key={subCategory._id} value={subCategory._id}>
+                          {subCategory.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <div>
                   <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       id="tags"
                       type="text"
@@ -338,28 +428,39 @@ const CreateBlogPage = () => {
                       onChange={(e) => setTagInput(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Add tags..."
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
                     />
-                    <button type="button" onClick={addTag} className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                      Add
+                    <button 
+                      type="button" 
+                      onClick={addTag} 
+                      className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap sm:w-auto w-full"
+                    >
+                      Add Tag
                     </button>
                   </div>
                   
                   {tags.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
                       {tags.map((tag) => (
-                        <span key={tag} className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm flex items-center gap-1">
-                          {tag}
+                        <span key={tag} className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm flex items-center gap-2 border border-orange-200">
+                          <span className="font-medium">{tag}</span>
                           <button
                             type="button"
                             onClick={() => removeTag(tag)}
-                            className="text-gray-500 hover:text-gray-700"
+                            className="text-orange-600 hover:text-orange-800 hover:bg-orange-200 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold transition-colors duration-200"
+                            aria-label={`Remove ${tag} tag`}
                           >
                             ×
                           </button>
                         </span>
                       ))}
                     </div>
+                  )}
+                  
+                  {tags.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      {tags.length} tag{tags.length !== 1 ? 's' : ''} added
+                    </p>
                   )}
                 </div>
               </div>

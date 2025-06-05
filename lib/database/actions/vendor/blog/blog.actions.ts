@@ -3,9 +3,83 @@
 import { connectToDatabase } from "@/lib/database/connect";
 import Blog from "@/lib/database/models/blog.model";
 import Vendor from "@/lib/database/models/vendor.model";
+import Category from "@/lib/database/models/category.model";
+import SubCategory from "@/lib/database/models/subCategory.model";
 import { verify_vendor } from "@/utils";
 import { revalidatePath } from "next/cache";
 import slugify from "slugify";
+
+// Get all categories for blog creation
+export const getCategoriesForBlog = async () => {
+  try {
+    await connectToDatabase();
+    const vendorAuth = await verify_vendor();
+    
+    if (!vendorAuth) {
+      return {
+        success: false,
+        message: "Unauthorized. Please login as vendor.",
+        categories: [],
+      };
+    }
+
+    const categories = await Category.find().sort({ name: 1 }).lean();
+
+    return {
+      success: true,
+      categories: JSON.parse(JSON.stringify(categories)),
+      message: "Categories fetched successfully",
+    };
+  } catch (error: any) {
+    console.error("Get categories error:", error);
+    return {
+      success: false,
+      message: error.message || "Failed to fetch categories",
+      categories: [],
+    };
+  }
+};
+
+// Get subcategories by category ID for blog creation
+export const getSubCategoriesForBlog = async (categoryId: string) => {
+  try {
+    await connectToDatabase();
+    const vendorAuth = await verify_vendor();
+    
+    if (!vendorAuth) {
+      return {
+        success: false,
+        message: "Unauthorized. Please login as vendor.",
+        subCategories: [],
+      };
+    }
+
+    if (!categoryId) {
+      return {
+        success: true,
+        subCategories: [],
+        message: "No category provided",
+      };
+    }
+
+    const subCategories = await SubCategory.find({ parent: categoryId })
+      .sort({ name: 1 })
+      .lean();
+
+    return {
+      success: true,
+      subCategories: JSON.parse(JSON.stringify(subCategories)),
+      message: "Subcategories fetched successfully",
+    };
+  } catch (error: any) {
+    console.error("Get subcategories error:", error);
+    return {
+      success: false,
+      message: error.message || "Failed to fetch subcategories",
+      subCategories: [],
+    };
+  }
+};
 
 // Create a new blog post
 export const createBlog = async (blogData: {
@@ -16,7 +90,8 @@ export const createBlog = async (blogData: {
     url: string;
     public_id: string;
   };
-  category: string;
+  category: string; // This will now be a category ObjectId
+  subCategory?: string; // Optional subcategory ObjectId
   tags: string[];
   status: "draft" | "published";
   featured: boolean;
@@ -71,6 +146,38 @@ export const createBlog = async (blogData: {
       };
     }
 
+    // Fetch category details to get category name
+    const category = await Category.findById(blogData.category);
+    if (!category) {
+      console.log("Category not found");
+      return {
+        success: false,
+        message: "Selected category not found.",
+      };
+    }
+
+    // Fetch subcategory details if provided
+    let subCategory = null;
+    if (blogData.subCategory) {
+      subCategory = await SubCategory.findById(blogData.subCategory);
+      if (!subCategory) {
+        console.log("Subcategory not found");
+        return {
+          success: false,
+          message: "Selected subcategory not found.",
+        };
+      }
+      
+      // Verify that subcategory belongs to the selected category
+      if (subCategory.parent.toString() !== category._id.toString()) {
+        console.log("Subcategory doesn't belong to selected category");
+        return {
+          success: false,
+          message: "Selected subcategory doesn't belong to the selected category.",
+        };
+      }
+    }
+
     const slug = slugify(blogData.title);
     console.log("Generated slug:", slug);
 
@@ -89,12 +196,13 @@ export const createBlog = async (blogData: {
       public_id: String(blogData.featuredImage.public_id)
     };
 
-    const blogToCreate = {
+    const blogToCreate: any = {
       title: blogData.title,
       content: blogData.content,
       excerpt: blogData.excerpt,
       featuredImage: featuredImageData,
-      category: blogData.category,
+      category: category._id,
+      categoryName: category.name,
       tags: blogData.tags,
       status: blogData.status,
       featured: blogData.featured,
@@ -104,6 +212,13 @@ export const createBlog = async (blogData: {
       author: vendor._id,
       authorName: vendor.name,
     };
+
+    // Add subcategory if provided
+    if (subCategory) {
+      blogToCreate.subCategory = subCategory._id;
+      blogToCreate.subCategoryName = subCategory.name;
+    }
+
     console.log("Blog object to create:", JSON.stringify(blogToCreate, null, 2));
 
     const newBlog = new Blog(blogToCreate);
@@ -241,7 +356,8 @@ export const updateBlog = async (
       url: string;
       public_id: string;
     };
-    category?: string;
+    category?: string; // This will now be a category ObjectId
+    subCategory?: string; // Optional subcategory ObjectId
     tags?: string[];
     status?: "draft" | "published" | "archived";
     featured?: boolean;
@@ -262,9 +378,66 @@ export const updateBlog = async (
     }
 
     // If title is being updated, generate new slug
-    let finalUpdateData = { ...updateData };
+    let finalUpdateData: any = { ...updateData };
     if (updateData.title) {
       finalUpdateData.slug = slugify(updateData.title);
+    }
+
+    // If category is being updated, fetch category name
+    if (updateData.category) {
+      const category = await Category.findById(updateData.category);
+      if (!category) {
+        return {
+          success: false,
+          message: "Selected category not found.",
+        };
+      }
+      finalUpdateData.categoryName = category.name;
+    }
+
+    // Handle subcategory updates
+    if (updateData.hasOwnProperty('subCategory')) {
+      if (updateData.subCategory) {
+        // Subcategory is being set or changed
+        const subCategory = await SubCategory.findById(updateData.subCategory);
+        if (!subCategory) {
+          return {
+            success: false,
+            message: "Selected subcategory not found.",
+          };
+        }
+        
+        // If category is also being updated, verify subcategory belongs to it
+        if (updateData.category) {
+          if (subCategory.parent.toString() !== updateData.category) {
+            return {
+              success: false,
+              message: "Selected subcategory doesn't belong to the selected category.",
+            };
+          }
+        } else {
+          // If only subcategory is being updated, verify it belongs to current category
+          const currentBlog = await Blog.findById(blogId);
+          if (!currentBlog) {
+            return {
+              success: false,
+              message: "Blog not found.",
+            };
+          }
+          if (subCategory.parent.toString() !== currentBlog.category.toString()) {
+            return {
+              success: false,
+              message: "Selected subcategory doesn't belong to the current category.",
+            };
+          }
+        }
+        
+        finalUpdateData.subCategoryName = subCategory.name;
+      } else {
+        // Subcategory is being removed (set to null/undefined)
+        finalUpdateData.subCategory = null;
+        finalUpdateData.subCategoryName = null;
+      }
     }
 
     const blog = await Blog.findOneAndUpdate(

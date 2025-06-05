@@ -9,7 +9,7 @@ const Logo = () => {
         <Image src={"/images/logo.png"} alt="logo" height={30} width={35} />
         <h2 className="text-center">
           <span className="font-extrabold text-[25px] uppercase text-black tracking-[1px] ">
-            VIBECART
+            IULAANSHOP
           </span>
         </h2>
       </Link>
