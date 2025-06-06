@@ -8,6 +8,7 @@ import SubCategory from "@/lib/database/models/subCategory.model";
 import { verify_vendor } from "@/utils";
 import { revalidatePath } from "next/cache";
 import slugify from "slugify";
+import { VendorBlogCacheInvalidation } from "@/lib/cache-utils";
 
 // Get all categories for blog creation
 export const getCategoriesForBlog = async () => {
@@ -237,6 +238,9 @@ export const createBlog = async (blogData: {
     await newBlog.save();
     console.log("Blog saved successfully");
     
+    // Invalidate cache after vendor creates a blog
+    await VendorBlogCacheInvalidation.smartInvalidation(newBlog);
+    
     revalidatePath("/vendor/dashboard/blogs");
 
     return {
@@ -453,6 +457,9 @@ export const updateBlog = async (
       };
     }
 
+    // Invalidate cache after vendor updates a blog
+    await VendorBlogCacheInvalidation.smartInvalidation(blog);
+
     revalidatePath("/vendor/dashboard/blogs");
     revalidatePath(`/vendor/dashboard/blogs/${blogId}`);
 
@@ -483,17 +490,27 @@ export const deleteBlog = async (blogId: string) => {
       };
     }
 
-    const blog = await Blog.findOneAndDelete({ 
+    // Get the blog before deleting to check its status and featured state
+    const blogToDelete = await Blog.findOne({ 
       _id: blogId, 
       author: vendorAuth.id 
     });
 
-    if (!blog) {
+    if (!blogToDelete) {
       return {
         success: false,
         message: "Blog not found or you don't have permission to delete it.",
       };
     }
+
+    // Now delete the blog
+    const blog = await Blog.findOneAndDelete({ 
+      _id: blogId, 
+      author: vendorAuth.id 
+    });
+
+    // Invalidate cache after vendor deletes a blog
+    await VendorBlogCacheInvalidation.smartInvalidation(blogToDelete);
 
     revalidatePath("/vendor/dashboard/blogs");
 

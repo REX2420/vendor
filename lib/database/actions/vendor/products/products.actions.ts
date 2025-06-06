@@ -6,6 +6,7 @@ import Vendor from "@/lib/database/models/vendor.model";
 import slugify from "slugify";
 import cloudinary from "cloudinary";
 import mongoose from "mongoose";
+import { VendorProductCacheInvalidation } from "@/lib/cache-utils";
 const { ObjectId } = mongoose.Types;
 
 // config our Cloudinary
@@ -99,6 +100,12 @@ export const createProduct = async (
         ],
       });
       await newProduct.save();
+      
+      // Invalidate cache after vendor creates a new product
+      // This affects new arrivals and general product listings
+      await VendorProductCacheInvalidation.newArrivals();
+      await VendorProductCacheInvalidation.allProducts();
+      
       return {
         message: "Product created successfully.",
         success: true,
@@ -117,13 +124,32 @@ export const createProduct = async (
 export const deleteProduct = async (productId: string) => {
   try {
     await connectToDatabase();
-    const product = await Product.findByIdAndDelete(productId);
-    if (!product) {
+    
+    // Get the product before deleting to check if it was featured
+    const productToDelete = await Product.findById(productId);
+    if (!productToDelete) {
       return {
         message: "Product not found with this Id!",
         success: false,
       };
     }
+    
+    const wasFeatured = productToDelete.featured;
+    
+    // Now delete the product
+    const product = await Product.findByIdAndDelete(productId);
+    
+    // Invalidate cache after vendor deletes a product
+    if (wasFeatured) {
+      // If it was a featured product, invalidate featured products cache
+      await VendorProductCacheInvalidation.featuredProducts();
+    }
+    
+    // Always invalidate new arrivals and general products cache when deleting any product
+    // This affects search results, product listings, etc.
+    await VendorProductCacheInvalidation.newArrivals();
+    await VendorProductCacheInvalidation.allProducts();
+    
     return {
       message: "Product Successfully deleted!",
       success: true,
@@ -182,6 +208,11 @@ export const updateProduct = async (
     product.longDescription = longDescription;
 
     await product.save();
+    
+    // Invalidate cache after vendor updates a product
+    // Use smart invalidation to only invalidate relevant caches
+    await VendorProductCacheInvalidation.smartInvalidation(product);
+    
     return {
       success: true,
       message: "Product updated successfully",
