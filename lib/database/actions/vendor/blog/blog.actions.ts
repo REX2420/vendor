@@ -95,7 +95,7 @@ export const createBlog = async (blogData: {
   subCategory?: string; // Optional subcategory ObjectId
   tags: string[];
   status: "draft" | "published";
-  featured: boolean;
+  featured?: boolean; // Now optional, defaults to false
   seoTitle?: string;
   seoDescription?: string;
 }) => {
@@ -206,7 +206,7 @@ export const createBlog = async (blogData: {
       categoryName: category.name,
       tags: blogData.tags,
       status: blogData.status,
-      featured: blogData.featured,
+      featured: blogData.featured || false, // Default to false if not provided
       seoTitle: blogData.seoTitle,
       seoDescription: blogData.seoDescription,
       slug: uniqueSlug,

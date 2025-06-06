@@ -42,7 +42,6 @@ const EditBlogPage = () => {
     category: "",
     subCategory: "",
     status: "draft" as "draft" | "published" | "archived",
-    featured: false,
     seoTitle: "",
     seoDescription: "",
   });
@@ -110,7 +109,6 @@ const EditBlogPage = () => {
           category: blog.category || "",
           subCategory: blog.subCategory || "",
           status: blog.status || "draft",
-          featured: blog.featured || false,
           seoTitle: blog.seoTitle || "",
           seoDescription: blog.seoDescription || "",
         });
@@ -378,15 +376,8 @@ const EditBlogPage = () => {
                   </select>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <label htmlFor="featured" className="text-sm font-medium text-gray-700">Featured Post</label>
-                  <input
-                    id="featured"
-                    type="checkbox"
-                    checked={formData.featured}
-                    onChange={(e) => handleInputChange("featured", e.target.checked)}
-                    className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                  />
+                <div className="text-sm text-gray-600">
+                  <p>Note: Featured status is managed by administrators.</p>
                 </div>
               </div>
             </div>

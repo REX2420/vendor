@@ -38,7 +38,6 @@ const CreateBlogPage = () => {
     category: "",
     subCategory: "",
     status: "draft" as "draft" | "published",
-    featured: false,
     seoTitle: "",
     seoDescription: "",
   });
@@ -87,7 +86,6 @@ const CreateBlogPage = () => {
         }
       } else {
         setSubCategories([]);
-        setFormData(prev => ({ ...prev, subCategory: "" }));
       }
     };
 
@@ -95,10 +93,19 @@ const CreateBlogPage = () => {
   }, [formData.category]);
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      
+      // Clear subcategory when category changes
+      if (field === "category" && value !== prev.category) {
+        newData.subCategory = "";
+      }
+      
+      return newData;
+    });
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,7 +208,6 @@ const CreateBlogPage = () => {
         subCategory: formData.subCategory,
         tags: tags,
         status: formData.status,
-        featured: formData.featured,
         seoTitle: formData.seoTitle || undefined,
         seoDescription: formData.seoDescription || undefined,
       };
@@ -354,15 +360,8 @@ const CreateBlogPage = () => {
                   </select>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <label htmlFor="featured" className="text-sm font-medium text-gray-700">Featured Post</label>
-                  <input
-                    id="featured"
-                    type="checkbox"
-                    checked={formData.featured}
-                    onChange={(e) => handleInputChange("featured", e.target.checked)}
-                    className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                  />
+                <div className="text-sm text-gray-600">
+                  <p>Note: Featured status is managed by administrators.</p>
                 </div>
               </div>
             </div>
